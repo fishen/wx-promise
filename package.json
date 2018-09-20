@@ -1,0 +1,23 @@
+{
+  "name": "wx-promise",
+  "version": "1.0.0-beta",
+  "description": "Extend WeChat miniprogram's api to surport promise",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fishen/wx-promise.git"
+  },
+  "keywords": [
+    "wx",
+    "promise"
+  ],
+  "author": "fisher",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fishen/wx-promise/issues"
+  },
+  "homepage": "https://github.com/fishen/wx-promise#readme"
+}
