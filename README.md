@@ -1,4 +1,4 @@
-# wx-promise
+# wx-api-promise
 Extend WeChat miniprogram's api to surport promise by adding an **Async** suffix. Please refer to the miniprogram official [documentation](https://developers.weixin.qq.com/miniprogram/dev/api/) for more information.
 
 # Features
@@ -11,13 +11,13 @@ Extend WeChat miniprogram's api to surport promise by adding an **Async** suffix
 * Extend global miniprogram's api.
 # Installation
 
->`$ npm install --save wx-promise`
+>`$ npm install --save wx-api-promise`
 
 # Getting started
 Call the method *promisifyAll* at the program entry (app.js), It only needs to be called once. It is very important to add an ***Async*** suffix after the currently used method.
 ```
 // app.js
-import { promisifyAll } from 'wx-promise';
+import { promisifyAll } from 'wx-api-promise';
 promisifyAll(wx);
 wx.getSystemInfoAsync().then(console.log).catch(console.error);
 ```
@@ -46,7 +46,7 @@ Please set **promisable** to false if the api does not support asynchronous mode
 # Set global common configuration
 Use *$common* to set global common configuration.
 ```
-import { promisifyAll, ApiConfig } from 'wx-promise';
+import { promisifyAll, ApiConfig } from 'wx-api-promise';
 
 const replaceMessage = (result, param) => {
     if (result && result.errMsg) {
@@ -70,7 +70,7 @@ output:
 # Set global default parameter
 Use *defaultOptions* to set default parameters.
 ```
-import { promisifyAll } from 'wx-promise';
+import { promisifyAll } from 'wx-api-promise';
 
 promisifyAll(wx, {
     showModal:{
@@ -87,7 +87,7 @@ promisifyAll(wx, {
 # Override global api
 Use the *before* interceptors to modify the request parameters to implement method overloading.
 ```
-import { promisifyAll, ApiConfig } from 'wx-promise';
+import { promisifyAll, ApiConfig } from 'wx-api-promise';
 
 promisifyAll(wx, {
     navigateTo: new ApiConfig({
@@ -118,7 +118,7 @@ Compatible with different versions of the cancellation method, and collect formI
 
 >It is worth mentioning that the second parameter can be used to get the request parameters in after interceptors.
 ```
-import { promisifyAll, ApiConfig } from 'wx-promise';
+import { promisifyAll, ApiConfig } from 'wx-api-promise';
 const replaceMessage = (result, param) => {
     if (result && result.errMsg) {
         result.message = result.errMsg;

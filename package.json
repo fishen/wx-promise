@@ -1,6 +1,6 @@
 {
-  "name": "wx-promise",
-  "version": "1.0.0-beta",
+  "name": "wx-api-promise",
+  "version": "1.0.0-beta1",
   "description": "Extend WeChat miniprogram's api to surport promise",
   "main": "index.js",
   "scripts": {
