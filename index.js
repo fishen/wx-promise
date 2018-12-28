@@ -11,11 +11,11 @@ const SUFFIX = 'Async';
 exports.promisifyAll = function (wx, config = {}) {
     if (!wx) return;
     Object.keys(wx)
-        .filter(key => typeof wx[key] === 'function'&& !key.endsWith('Sync') && (!config[key] || config[key].promisable !== false))
+        .filter(key => typeof wx[key] === 'function' && !key.endsWith('Sync') && (!config[key] || config[key].promisable !== false))
         .forEach(key => {
             const methodName = `${key}${SUFFIX}`;
             const cfg = Config.merge(config[COMMON_KEY], config[key]);
-            wx[methodName] = promise.promisify(wx[key], cfg);
+            wx[methodName] = promise.promisify(wx, key, cfg);
         })
 }
 

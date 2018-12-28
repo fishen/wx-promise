@@ -33,6 +33,7 @@ defaultOptions|Object|default configuration options|{}
 promisable|Boolean|can the api be promiseify|true
 before|Array|interceptors before api call|[]
 after|Array|interceptors after api call|[]
+extend|Object|extend promise|{}
 
 Please set **promisable** to false if the api does not support asynchronous mode.
 # API
