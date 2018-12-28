@@ -17,9 +17,14 @@ Extend WeChat miniprogram's api to surport promise by adding an **Async** suffix
 Call the method *promisifyAll* at the program entry (app.js), It only needs to be called once. It is very important to add an ***Async*** suffix after the currently used method.
 ```
 // app.js
-import { promisifyAll } from 'wx-promise-all';
+import { promisifyAll, promisify } from 'wx-promise-all';
+
+// promisify all wx's api
 promisifyAll(wx);
 wx.getSystemInfoAsync().then(console.log).catch(console.error);
+
+// promisify single api
+promisify(wx.getSystemInfo)().then(console.log).catch(console.error);
 ```
 output:
 ```
@@ -37,12 +42,19 @@ extend|Object|extend promise|{}
 
 Please set **promisable** to false if the api does not support asynchronous mode.
 # API
-> **promisifyAll(wx : object, config : { string : ApiConfig }) : void**
+> **promisifyAll(provider : object, config : { string : ApiConfig }) : void**
 
-* wx: WeChat miniprogram's api provider
+* provider: api provider
 * config: api configuration options
     * $common: global configuration options
     * apiName: specific api name
+
+***
+> **promisify(api:function, config : ApiConfig, name : string) : function**
+
+* api: a function to be promisify
+* config: api configuration options
+* name: the api function name, can be used for interceptor's argument.
 
 ***
 # Promise.prototype.finally
@@ -66,7 +78,7 @@ import { promisifyAll, ApiConfig } from 'wx-promise-all';
 const replaceMessage = (result, param) => {
     if (result && result.errMsg) {
         result.message = result.errMsg;
-        delete result.errMsg;
+        // delete result.errMsg;
     }
     return result;
 };
@@ -117,11 +129,11 @@ wx.navigateToAsync('path');
 # Complex example
 Compatible with different versions of the cancellation method, and collect formId.
 
->It is worth mentioning that the second parameter can be used to get the request parameters in after interceptors.
+>It is worth mentioning that the second parameter can be used to get the request parameters in after interceptors, and the third parameter is api name.
 ```
 import { promisifyAll, ApiConfig } from 'wx-promise-all';
 
-const replaceMessage = (result, param) => {
+const replaceMessage = (result, param, apiName) => {
     if (result && result.errMsg) {
         result.message = result.errMsg;
         delete result.errMsg;
@@ -161,4 +173,4 @@ promisifyAll(wx, {
     stopRecord: new ApiConfig({ promisable:false })
 );
 ```
-
+# Update log

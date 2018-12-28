@@ -3,8 +3,9 @@ exports.finally = function (cb) {
 }
 
 exports.promisify = function (provider, apiName, config = {}) {
-    const api = provider[apiName];
-    if (typeof api !== 'function') return Promise.reject(new Error("the argument api must be a function"));
+    const api = typeof provider === 'function' ? provider : provider[apiName];
+    if (typeof api !== 'function') return Promise.reject(new Error("Invalid member name or api provider"));
+    config = config || {};
     return function (param) {
         let finalParam;
         let promise = Promise.resolve(param);
