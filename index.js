@@ -1,22 +1,29 @@
 const promise = require('./src/promise');
 const Config = require('./src/config');
+const Options = require('./src/options');
+const Interceptor=require('./src/interceptor');
 
 if (typeof Promise.prototype.finally !== 'function') {
     Promise.prototype.finally = promise.finally;
 }
 
-const COMMON_KEY = '$common';
-const SUFFIX = 'Async';
-
-exports.promisifyAll = function (provider, config = {}) {
+exports.promisifyAll = function (opts) {
+    const options = new Options(opts || {});
+    const { provider, config, integrated } = options;
     if (!provider) return;
-    Object.keys(provider)
-        .filter(key => typeof provider[key] === 'function' && !key.endsWith('Sync') && (!config[key] || config[key].promisable !== false))
-        .forEach(key => {
-            const methodName = `${key}${SUFFIX}`;
-            const cfg = Config.merge(config[COMMON_KEY], config[key]);
-            provider[methodName] = promise.promisify(provider, key, cfg);
-        })
+    return Object.keys(provider)
+        .reduce((result, key) => {
+            const promisable = Config.canPromisify(config[key], provider, key);
+            if (promisable) {
+                const cfg = Config.merge(config[options.globalKey], config[key]);
+                const fn = promise.promisify(provider, key, cfg);
+                const methodName = `${key}${options.suffix}`;
+                result[methodName] = fn;
+                options.bound && (provider[methodName] = fn);
+            }
+            integrated && (result[key] = provider[key]);
+            return result;
+        }, {});
 }
 
 exports.promisify = function (api, config = {}, name = '') {
@@ -24,4 +31,8 @@ exports.promisify = function (api, config = {}, name = '') {
     return promise.promisify(api, name, config);
 }
 
+exports.PromiseOptions = Options;
+
 exports.ApiConfig = Config;
+
+exports.ApiInterceptor=Interceptor;

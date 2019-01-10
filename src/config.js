@@ -18,4 +18,8 @@ module.exports = class Config {
             extend: Object.assign({}, config1.extend, config2.extend)
         });
     }
+
+    static canPromisify(config, provider, key) {
+        return typeof provider[key] === 'function' && !key.endsWith('Sync') && (!config || config.promisable !== false);
+    }
 }

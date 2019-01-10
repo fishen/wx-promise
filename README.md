@@ -20,7 +20,7 @@ Call the method *promisifyAll* at the program entry (app.js), It only needs to b
 import { promisifyAll, promisify } from 'wx-promise-all';
 
 // promisify all wx's api
-promisifyAll(wx);
+promisifyAll({ provider:wx });
 wx.getSystemInfoAsync().then(console.log).catch(console.error);
 
 // promisify single api
@@ -30,7 +30,7 @@ output:
 ```
 { errMsg: "getSystemInfo:ok", model: "iPhone 6", … }
 ```
-# Configurations
+# API Configurations
 
 name|type|description|default
 ---|:--:|:--:|---:
@@ -42,15 +42,23 @@ extend|Object|extend promise|{}
 
 Please set **promisable** to false if the api does not support asynchronous mode.
 # API
-> **promisifyAll(provider : object, config : { string : ApiConfig }) : void**
+> **promisifyAll(options: PromiseOptions) : object**
 
-* provider: api provider
-* config: api configuration options
-    * $common: global configuration options
+promisify all available provider's api and return a new api vender.
+
+* **provider**(object): api provider, such as 'wx'
+* **suffix**(string, optional): the suffix of asynchronous method, default is *'Async'*.
+* **globalKey**(string, optional): the global api config key name, defaut is *'$global'*.
+* **bound**(boolean, optional): weather bind asynchronous method to provider, default is *true*.
+* **integrated**(boolean, optional): weather integrate other members to the return object, default is *true*.
+* **config**(object, optional): api configuration options
+    * $global: global configuration options
     * apiName: specific api name
 
 ***
 > **promisify(api:function, config : ApiConfig, name : string) : function**
+
+promisify single api.
 
 * api: a function to be promisify
 * config: api configuration options
@@ -70,8 +78,8 @@ output:
 ```
 {data:"<!DOCTYPE html>↵<html class=""><!--STATUS OK--><he…ript><div id="bgContainer" ></div></body></html>", header: {…}, statusCode: 200, message: "request:ok"}
 ```
-# Set global common configuration
-Use *$common* to set global common configuration.
+# Set global configuration
+Use *$global* to set global common configuration.
 ```
 import { promisifyAll, ApiConfig } from 'wx-promise-all';
 
@@ -82,33 +90,39 @@ const replaceMessage = (result, param) => {
     }
     return result;
 };
-promisifyAll(wx, {
-    $common: new ApiConfig({
-        // replace errorMsg with message field.
-        after: [{ success: replaceMessage, fail: replaceMessage }]
-    })
-);
+promisifyAll({
+    provider: wx, 
+    config: {
+        $global: new ApiConfig({
+            // replace errorMsg with message field.
+            after: [{ success: replaceMessage, fail: replaceMessage }]
+        })
+    }
+});
 wx.getSystemInfoAsync().then(console.log).catch(console.error);
 ```
 output:
 ```
 { message: "getSystemInfo:ok", model: "iPhone 6", … }
 ```
-# Set global default parameter
+# Set default parameter
 Use *defaultOptions* to set default parameters.
 ```
 import { promisifyAll } from 'wx-promise-all';
 
-promisifyAll(wx, {
-    showModal:{
-        // set default parameters for showModal
-        defaultOptions: {
-            title: 'default title',
-            cancelColor: '#ff0000',
-            confirmColor: '#00ff00',
-        },
+promisifyAll({
+    provider: wx, 
+    config: {
+        showModal:{
+            // set default parameters for showModal
+            defaultOptions: {
+                title: 'default title',
+                cancelColor: '#ff0000',
+                confirmColor: '#00ff00',
+            },
+        }
     }
-);
+});
 ```
 
 # Overload global api
@@ -116,18 +130,21 @@ Use the *before* interceptors to modify the request parameters to implement meth
 ```
 import { promisifyAll, ApiConfig } from 'wx-promise-all';
 
-promisifyAll(wx, {
-    navigateTo: new ApiConfig({
-        // overload navigateTo
-        before: [{ success: p => typeof p === 'string' ? { url: p } : p }]
-    })
-);
-// The following two ways are the same effect
+promisifyAll({
+    provider: wx, 
+    config: {
+        navigateTo: new ApiConfig({
+            // overload navigateTo
+            before: [{ success: p => typeof p === 'string' ? { url: p } : p }]
+        })
+    }
+});
+// The following two ways are equivalent
 wx.navigateToAsync({ url : 'path' });
 wx.navigateToAsync('path');
 ```
 # Complex example
-Compatible with different versions of the cancellation method, and collect formId.
+Compatible with different versions of the api requestPayment's cancellation method, and collected formId when the payment is completed.
 
 >It is worth mentioning that the second parameter can be used to get the request parameters in after interceptors, and the third parameter is api name.
 ```
@@ -141,36 +158,39 @@ const replaceMessage = (result, param, apiName) => {
     return result;
 };
 
-promisifyAll(wx, {
-    $common: new ApiConfig({
-        // replace errorMsg with message field.
-        after: [{ success: replaceMessage, fail: replaceMessage }]
-    }),
-    requestPayment: new ApiConfig({
-        after: [{
-            success: (data, param) => {
-                // Compatible with different versions of the cancellation method
-                if (data.message === 'requestPayment:cancel') {
-                    // add cancel field to determine if it has been cancelled
-                    data.cancel = true;
-                    return Promise.reject(data);
-                } else {
-                    // get request parameters from sencond parameter
-                    const formId = param.package;
-                    // collectFormId(formId);
-                    return data;
+promisifyAll({}
+    provider: wx, 
+    config: {
+        $global: new ApiConfig({
+            // replace errorMsg with message field.
+            after: [{ success: replaceMessage, fail: replaceMessage }]
+        }),
+        requestPayment: new ApiConfig({
+            after: [{
+                success: (data, param) => {
+                    // Compatible with different versions of the cancellation method
+                    if (data.message === 'requestPayment:cancel') {
+                        // add cancel field to determine if it has been cancelled
+                        data.cancel = true;
+                        return Promise.reject(data);
+                    } else {
+                        // get request parameters from sencond parameter
+                        const formId = param.package;
+                        // collectFormId(formId);
+                        return data;
+                    }
+                },
+                fail: error => {
+                    if (error.message === 'requestPayment:fail cancel') {
+                        error.cancel = true;
+                    }
+                    return Promise.reject(error);
                 }
-            },
-            fail: error => {
-                if (error.message === 'requestPayment:fail cancel') {
-                    error.cancel = true;
-                }
-                return Promise.reject(error);
-            }
-        }]
-    }),
-    // don't need promisify
-    stopRecord: new ApiConfig({ promisable:false })
-);
+            }]
+        }),
+        // don't need promisify
+        stopRecord: new ApiConfig({ promisable:false })
+    }
+});
 ```
 # Update log
