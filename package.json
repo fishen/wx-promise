@@ -1,10 +1,17 @@
 {
-  "name": "wx-promise-all",
-  "version": "1.1.0-beta",
+  "name": "wxa-promise",
+  "version": "1.0.1",
   "description": "Extend WeChat miniprogram's api to surport promise",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "ts": "ts-node",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
+    "dts": "gulp dts",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "npm run type-check -- --watch",
+    "build": "npm run type-check&&npm run lint&&webpack",
+    "pack": "npm run build&&npm run dts&&npm pack"
   },
   "repository": {
     "type": "git",
@@ -21,5 +28,17 @@
   "bugs": {
     "url": "https://github.com/fishen/wx-promise/issues"
   },
-  "homepage": "https://github.com/fishen/wx-promise#readme"
+  "homepage": "https://github.com/fishen/wx-promise#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "bundle-dts": "^1.0.4",
+    "gulp": "^4.0.0",
+    "gulp-typescript": "^5.0.1",
+    "ts-loader": "^5.3.3",
+    "tslint": "^5.14.0",
+    "typescript": "^3.3.4000",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-node-externals": "^1.7.2"
+  }
 }

@@ -1,0 +1,1 @@
+export { replaceMessage } from "./replaceMessage";

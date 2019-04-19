@@ -1,23 +1,22 @@
-# wx-promise-all
-Extend WeChat miniprogram's api to surport promise by adding an **Async** suffix. Please refer to the miniprogram official [documentation](https://developers.weixin.qq.com/miniprogram/dev/api/) for more information.
+# wxa-promise
+Extend WeChat miniprogram's api to surport promise. Please refer to the miniprogram official [:link:documentation](https://developers.weixin.qq.com/miniprogram/dev/api/) for more information.
 
 # Features
-* Call WeChat miniprogram's api based on Promise style;
-* Add the *finally* method extension to the Promise;
-* Can set global default parameter;
-* Overload miniprogram's api.
-* Add interceptors before the api is called;
-* Add interceptors after the api is called;
-* Extend global miniprogram's api.
+* :one: Call WeChat miniprogram's api based on Promise style;
+* :two: Can set global default parameter;
+* :three: Add interceptors before the api is called;
+* :four: Add interceptors after the api is called;
+* :five: Built-in common interceptors;
 # Installation
 
->`$ npm install --save wx-promise-all`
+>`$ npm install --save wxa-promise`
 
 # Getting started
 Call the method *promisifyAll* at the program entry (app.js), It only needs to be called once. It is very important to add an ***Async*** suffix after the currently used method.
+
+:dash:example:
 ```
-// app.js
-import { promisifyAll, promisify } from 'wx-promise-all';
+import { promisifyAll, promisify } from 'wxa-promise';
 
 // promisify all wx's api
 promisifyAll({ provider:wx });
@@ -26,171 +25,109 @@ wx.getSystemInfoAsync().then(console.log).catch(console.error);
 // promisify single api
 promisify(wx.getSystemInfo)().then(console.log).catch(console.error);
 ```
-output:
+:eyes:output:
 ```
 { errMsg: "getSystemInfo:ok", model: "iPhone 6", … }
 ```
-# API Configurations
-
-name|type|description|default
----|:--:|:--:|---:
-defaultOptions|Object|default configuration options|{}
-promisable|Boolean|can the api be promiseify|true
-before|Array|interceptors before api call|[]
-after|Array|interceptors after api call|[]
-extend|Object|extend promise|{}
-
-Please set **promisable** to false if the api does not support asynchronous mode.
 # API
-> **promisifyAll(options: PromiseOptions) : object**
 
-promisify all available provider's api and return a new api vender.
+## promisifyAll(options: IPromiseAllOptions) : void
+Extend specified provider to convert all matches APIs to promse-style's API, *promisifyAll* should be called at the program entry (such as app.js).
 
-* **provider**(object): api provider, such as 'wx'
-* **suffix**(string, optional): the suffix of asynchronous method, default is *'Async'*.
-* **globalKey**(string, optional): the global api config key name, defaut is *'$global'*.
-* **bound**(boolean, optional): weather bind asynchronous method to provider, default is *true*.
-* **integrated**(boolean, optional): weather integrate other members to the return object, default is *true*.
-* **config**(object, optional): api configuration options
-    * $global: global configuration options
-    * apiName: specific api name
+:warning:If the suffix is set to an empty string, the default method will be overridden, please use the empty suffix with caution.
 
-***
-> **promisify(api:function, config : ApiConfig, name : string) : function**
+**IPromiseAllOptions**
+name|type|required|description|default
+---|:--:|:--:|--|---:
+provider|Object|Y|api provider|wx
+suffix|String|N|api suffix before api call|'Async'
+filter|Function|N|filter condition|wx.canIUse(`${name}.success`)
+config|Record<string, IApiOptions>|N|api configs|{}
+:dash:example:
+```
+import { promisifyAll } from 'wxa-promise';
 
-promisify single api.
-
+// promisify all wx's api
+promisifyAll({ provider:wx });
+wx.getSystemInfoAsync().then(console.log).catch(console.error);
+```
+## promisify(api: Function, options?: IApiOptions)
+Convert single API to promise-style's API.
 * api: a function to be promisify
-* config: api configuration options
-* name: the api function name, can be used for interceptor's argument.
+* options: api configuration options
 
-***
-# Promise.prototype.finally
-The *finally* method is always called, either correctly or unexpectedly.
+**IApiOptions**
+name|type|required|description|default
+---|:--:|:--:|--|---:
+default|Object|N|default configuration options|{}
+before|Array|N|interceptors before api call|[]
+after|Array|N|interceptors after api call|[]
+:dash:example:
 ```
-wx.showLoadingAsync()
-    .then(()=>wx.requestAsync({url:'http://www.baidu.com'}))
-    .then(console.log)
-    .catch(console.error)
-    .finally(wx.hideLoadingAsync)
+import { promisify } from 'wxa-promise';
+
+// set default value
+const showLoading = promisify(wx.showLoading, { default: { title: '' } });
+showLoading().catch(console.error);
+
+// set before interceptor to display international text
+const lang = 'en';
+const interceptor = (param: any) => {
+  const i18nTexts = { cancelText: 'Cancel', confirmText: 'Ok' };
+  const texts = lang === 'en' ? i18nTexts : {};
+  return Object.assign(param, texts);
+}
+const showModal = promisify(wx.showModal, { before: interceptor });
+showModal({ title: 'hello', content: 'world' });
 ```
-output:
-```
-{data:"<!DOCTYPE html>↵<html class=""><!--STATUS OK--><he…ript><div id="bgContainer" ></div></body></html>", header: {…}, statusCode: 200, message: "request:ok"}
-```
+:sparkles: *The second parameter of the response interceptor is the request parameter.*
 # Set global configuration
-Use *$global* to set global common configuration.
-```
-import { promisifyAll, ApiConfig } from 'wx-promise-all';
+Use *globalOptions* to set global common configuration.
 
-const replaceMessage = (result, param) => {
+:dash:example:
+```
+import { promisify, globalOptions } from 'wxa-promise';
+
+const replaceMessage = (result: any) => {
     if (result && result.errMsg) {
-        result.message = result.errMsg;
-        // delete result.errMsg;
+    result.message = result.errMsg;
+    delete result.errMsg;
     }
     return result;
 };
-promisifyAll({
-    provider: wx, 
-    config: {
-        $global: new ApiConfig({
-            // replace errorMsg with message field.
-            after: [{ success: replaceMessage, fail: replaceMessage }]
-        })
-    }
+
+globalOptions.responseInterceptors.push({
+    resolve: replaceMessage,
+    reject: replaceMessage
 });
-wx.getSystemInfoAsync().then(console.log).catch(console.error);
+
+promisify(wx.getSystemInfo)().then(console.log).catch(console.error);
 ```
-output:
+:eyes:output(errMsg has been replaced with message):
 ```
 { message: "getSystemInfo:ok", model: "iPhone 6", … }
 ```
-# Set default parameter
-Use *defaultOptions* to set default parameters.
-```
-import { promisifyAll } from 'wx-promise-all';
+# Built-in Interceptors
+## replaceMessage( options?: { removeErrMsg?: boolean } ) 
+* removeErrMsg: Wether to remove the default errMsg parameter.
 
-promisifyAll({
-    provider: wx, 
-    config: {
-        showModal:{
-            // set default parameters for showModal
-            defaultOptions: {
-                title: 'default title',
-                cancelColor: '#ff0000',
-                confirmColor: '#00ff00',
-            },
-        }
-    }
-});
-```
+Replace the errMsg field with a more generic one(message).
 
-# Overload global api
-Use the *before* interceptors to modify the request parameters to implement method overloading.
+:dash:example:
 ```
-import { promisifyAll, ApiConfig } from 'wx-promise-all';
+import { promisify, globalOptions, interceptors } from 'wxa-promise';
 
-promisifyAll({
-    provider: wx, 
-    config: {
-        navigateTo: new ApiConfig({
-            // overload navigateTo
-            before: [{ success: p => typeof p === 'string' ? { url: p } : p }]
-        })
-    }
-});
-// The following two ways are equivalent
-wx.navigateToAsync({ url : 'path' });
-wx.navigateToAsync('path');
+globalOptions.responseInterceptors.push(interceptors.replaceMessage());
+const showLoading = promisify(wx.showLoading, { default: { title: '' } });
+showLoading().catch(console.error);
 ```
-# Complex example
-Compatible with different versions of the api requestPayment's cancellation method, and collected formId when the payment is completed.
-
->It is worth mentioning that the second parameter can be used to get the request parameters in after interceptors, and the third parameter is api name.
-```
-import { promisifyAll, ApiConfig } from 'wx-promise-all';
-
-const replaceMessage = (result, param, apiName) => {
-    if (result && result.errMsg) {
-        result.message = result.errMsg;
-        delete result.errMsg;
-    }
-    return result;
-};
-
-promisifyAll({}
-    provider: wx, 
-    config: {
-        $global: new ApiConfig({
-            // replace errorMsg with message field.
-            after: [{ success: replaceMessage, fail: replaceMessage }]
-        }),
-        requestPayment: new ApiConfig({
-            after: [{
-                success: (data, param) => {
-                    // Compatible with different versions of the cancellation method
-                    if (data.message === 'requestPayment:cancel') {
-                        // add cancel field to determine if it has been cancelled
-                        data.cancel = true;
-                        return Promise.reject(data);
-                    } else {
-                        // get request parameters from sencond parameter
-                        const formId = param.package;
-                        // collectFormId(formId);
-                        return data;
-                    }
-                },
-                fail: error => {
-                    if (error.message === 'requestPayment:fail cancel') {
-                        error.cancel = true;
-                    }
-                    return Promise.reject(error);
-                }
-            }]
-        }),
-        // don't need promisify
-        stopRecord: new ApiConfig({ promisable:false })
-    }
-});
-```
-# Update log
+## To be continued...
+# Execution order
+:warning:All interceptors should return a valid value for subsequent operations.
+1. Merge current parameters with default parameters;
+2. Execute the current before interceptor;
+3. Execute the global before interceptors in order of addition;
+4. Invoke the API with final request parameter which would pass to the after interciptors with **second parameter**;
+5. Execute the global after interceptors in order of addition;
+6. Execute the current after interceptor;
+7. Return final promise;

@@ -1,0 +1,21 @@
+{
+  "name": "demo",
+  "version": "1.0.0",
+  "scripts": {
+    "tsc": "./node_modules/typescript/bin/tsc",
+    "compile": "tsc"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.123",
+    "bundle-dts": "^1.0.1",
+    "gulp": "^4.0.0",
+    "gulp-typescript": "^5.0.1",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.3.4000",
+    "webpack": "^4.29.6",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "dependencies": {
+    "wxa-promise": "file:../wxa-promise-1.0.1.tgz"
+  }
+}
