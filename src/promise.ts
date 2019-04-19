@@ -46,11 +46,11 @@ export function promisify(api: (param?: any) => any, options?: IApiOptions) {
     const opt: IApiOptions = options || {};
     return function(param?: object) {
         const interceptors = [];
-        interceptors.push(() => Object.assign({}, opt.default, param));
-        interceptors.push(opt.before);
+        interceptors.push(() => param);
         Array.prototype.push.apply(interceptors, globalOptions.requestInterceptors);
+        interceptors.push(opt.before);
         const flags = { request: undefined };
-        interceptors.push((value: any) => flags.request = Object.assign({}, value));
+        interceptors.push((value: any) => flags.request = Object.assign({}, opt.default, value));
         interceptors.push((r: any) => new Promise((success, fail) => api({ ...r, success, fail })));
         Array.prototype.push.apply(interceptors, globalOptions.responseInterceptors);
         interceptors.push(opt.after);

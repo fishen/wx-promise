@@ -1,12 +1,8 @@
-import { promisify } from 'wxa-promise';
+import { promisify, confirmCancelPromise } from 'wxa-promise';
+
 
 App<any>({
   onLaunch() {
-
-    // set default value
-    // const showLoading = promisify(wx.showLoading, { default: { title: '' } });
-    // showLoading().catch(console.error);
-
     // set before interceptor to display international text
     const lang = 'en';
     const interceptor = (param: any) => {
@@ -14,6 +10,8 @@ App<any>({
       return Object.assign(param, texts);
     }
     const showModal = promisify(wx.showModal, { before: interceptor });
-    showModal({ title: 'hello', content: 'world' });
-  },
+    confirmCancelPromise(showModal({ title: 'hello', content: 'world' }))
+    .confirm(() => console.log('ok'))
+    .cancel(() => console.log('cancel'));
+},
 })

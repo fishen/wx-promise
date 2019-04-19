@@ -1,15 +1,19 @@
-export class ConfirmCancelPromise<T> extends Promise<T> {
-    public static from<T>(promise: Promise<T>): ConfirmCancelPromise<T> {
-        return new ConfirmCancelPromise(function(resolve, reject) {
-            return promise.then(resolve, reject);
-        });
-    }
-    public comfirm(fn: () => any): ConfirmCancelPromise<T> {
-        const p = this.then((value: any) => (value && value.cancel ? fn() : value));
-        return ConfirmCancelPromise.from(p);
-    }
-    public cancel(fn: () => any): ConfirmCancelPromise<T> {
-        const p = this.then((value: any) => (value && value.confirm ? fn() : value));
-        return ConfirmCancelPromise.from(p);
-    }
+type ConfirmCancelPromise<T = any> = Promise<T> & {
+    cancel: (fn: (param: T) => any) => ConfirmCancelPromise<T>,
+    confirm: (fn: (param: T) => any) => ConfirmCancelPromise<T>,
+};
+
+export function confirmCancelPromise<T = any>(promise: Promise<T>): ConfirmCancelPromise {
+    const thisP: any = promise;
+    thisP.cancel = function(fn: (param: T) => any): ConfirmCancelPromise {
+        const p: ConfirmCancelPromise = this.then((value: any) => (value && value.cancel ? fn(value) : value));
+        p.confirm = this.confirm;
+        return p;
+    };
+    thisP.confirm = function(fn: (param: T) => any): ConfirmCancelPromise {
+        const p: ConfirmCancelPromise = this.then((value: any) => (value && value.confirm ? fn(value) : value));
+        p.cancel = this.cancel;
+        return p;
+    };
+    return thisP;
 }

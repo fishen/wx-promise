@@ -124,9 +124,9 @@ showLoading().catch(console.error);
 ## To be continued...
 # Execution order
 :warning:All interceptors should return a valid value for subsequent operations.
-1. Merge current parameters with default parameters;
+1. Execute the global before interceptors in order of addition;
 2. Execute the current before interceptor;
-3. Execute the global before interceptors in order of addition;
+3. Merge current parameters with default parameters;
 4. Invoke the API with final request parameter which would pass to the after interciptors with **second parameter**;
 5. Execute the global after interceptors in order of addition;
 6. Execute the current after interceptor;

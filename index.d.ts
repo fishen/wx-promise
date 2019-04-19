@@ -45,15 +45,16 @@ declare module "wxa-promise/src/interceptors/index" {
     export { replaceMessage } from "wxa-promise/src/interceptors/replaceMessage";
 }
 declare module "wxa-promise/src/confirmCancelPromise" {
-    export class ConfirmCancelPromise<T> extends Promise<T> {
-        static from<T>(promise: Promise<T>): ConfirmCancelPromise<T>;
-        comfirm(fn: () => any): ConfirmCancelPromise<T>;
-        cancel(fn: () => any): ConfirmCancelPromise<T>;
-    }
+    type ConfirmCancelPromise<T = any> = Promise<T> & {
+        cancel: (fn: (param: T) => any) => ConfirmCancelPromise<T>;
+        confirm: (fn: (param: T) => any) => ConfirmCancelPromise<T>;
+    };
+    export function confirmCancelPromise<T = any>(promise: Promise<T>): ConfirmCancelPromise;
+    export {};
 }
 declare module "wxa-promise" {
     export { promisify, promisifyAll, globalOptions } from "wxa-promise/src/promise";
     import * as interceptors from "wxa-promise/src/interceptors/index";
     export { interceptors };
-    export { ConfirmCancelPromise } from "wxa-promise/src/confirmCancelPromise";
+    export { confirmCancelPromise } from "wxa-promise/src/confirmCancelPromise";
 }
