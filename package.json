@@ -7,11 +7,10 @@
     "ts": "ts-node",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
     "fix": "tslint -c tslint.json 'src/**/*.ts' --fix",
-    "dts": "gulp dts",
     "type-check": "tsc --noEmit",
     "type-check:watch": "npm run type-check -- --watch",
     "build": "npm run type-check&&npm run lint&&webpack",
-    "pack": "npm run build&&npm run dts&&npm pack"
+    "pack": "npm run build&&npm pack"
   },
   "repository": {
     "type": "git",
@@ -31,14 +30,13 @@
   "homepage": "https://github.com/fishen/wx-promise#readme",
   "dependencies": {},
   "devDependencies": {
-    "bundle-dts": "^1.0.4",
-    "gulp": "^4.0.0",
+    "bundle-dts": "^1.1.1",
     "gulp-typescript": "^5.0.1",
-    "ts-loader": "^5.3.3",
-    "tslint": "^5.14.0",
-    "typescript": "^3.3.4000",
-    "webpack": "^4.29.6",
-    "webpack-cli": "^3.3.0",
+    "ts-loader": "^5.4.5",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.3",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
     "webpack-node-externals": "^1.7.2"
   }
 }
